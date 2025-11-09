@@ -21,7 +21,10 @@ export async function proxy(request: NextRequest) {
   }
 
   if (!token && url.pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/sign-in', request.url))
+
+    // TODO: UNCHECKED below for Middleware
+
+    // return NextResponse.redirect(new URL('/sign-in', request.url))  
   }
 
   return NextResponse.next()
