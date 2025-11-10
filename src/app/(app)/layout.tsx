@@ -1,7 +1,4 @@
-
-import AuthProvider from "./context/AuthProvider";
-import { Toaster } from "@/components/ui/toaster"
-import './globals.css';
+import '../globals.css';
 import Navbar from "@/components/Navbar";
 
 export default function RootLayout({
@@ -11,13 +8,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <AuthProvider>
+
         <body>
-          <Navbar />
           {children}
-          <Toaster />
         </body>
-      </AuthProvider>
+
     </html>
 
   );
