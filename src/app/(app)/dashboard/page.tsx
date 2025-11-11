@@ -16,9 +16,10 @@ import { useSession } from "next-auth/react"
 import { useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 
-function page() {
+
+function UserDashboard() {
   const [messages, setMessages] = useState<Message[]>([])
-  const [isloading, setIsloading] = useState(false)
+  const [isloading, setIsLoading] = useState(false)
   const [isSwitchLoading, setIsSwitchLoading] = useState(false)
 
   const { toast } = useToast()
@@ -30,7 +31,10 @@ function page() {
   const { data: session } = useSession()
 
   const form = useForm({
-    resolver: zodResolver(AcceptMessageSchema)
+    resolver: zodResolver(AcceptMessageSchema),
+    defaultValues: {
+      acceptMessages: false  // ✅ Initial value diya
+    }
   })
 
   const { register, watch, setValue } = form
@@ -55,10 +59,10 @@ function page() {
       setIsSwitchLoading(false)
     }
 
-  }, [setValue])
+  }, [setValue, toast])
 
   const fetchMessages = useCallback(async (refresh: boolean = false) => {
-    setIsloading(true)
+    setIsLoading(true)
     setIsSwitchLoading(false)
     try {
       const response = await axios.get<ApiResponse>('/api/get-messages')
@@ -77,10 +81,10 @@ function page() {
         variant: 'destructive'
       })
     } finally {
-      setIsloading(false)
+      setIsLoading(false)
       setIsSwitchLoading(false)
     }
-  }, [setIsloading, setMessages])
+  }, [setIsLoading, setMessages, toast])
 
   useEffect(() => {
     if (!session || !session.user) return
@@ -88,7 +92,7 @@ function page() {
     fetchMessages()
     fetchAcceptMessage()
 
-  }, [session, setValue, fetchAcceptMessage, fetchMessages])
+  }, [session, setValue, toast, fetchAcceptMessage, fetchMessages])
 
   // handle switch change
 
@@ -109,11 +113,16 @@ function page() {
         description: axiosError.response?.data.message || "failed to fetch message settings",
         variant: 'destructive'
       })
-    }
+    }   
   }
 
-  const {username} = session?.user as User
-  //TODO: do more research 
+  if (!session || !session.user) {
+    return <div></div>;
+  }
+
+  const {username} = session.user as User
+
+
   const baseUrl = `${window.location.protocol}//${window.location.host}`
   const profileUrl = `${baseUrl}/u/${username}`
   
@@ -125,11 +134,7 @@ function page() {
       })
   }
 
-
-  if (!session || !session.user) {
-    return <div>Please Login</div>
-  }
-
+    
   return (
     <div className="my-8 mx-4 md:mx-8 lg:mx-auto p-6 bg-white rounded w-full max-w-6xl">
       <h1 className="text-4xl font-bold mb-4">User Dashboard</h1>
@@ -150,7 +155,7 @@ function page() {
       <div className="mb-4">
         <Switch
           {...register('acceptMessages')}
-          checked={acceptMessages}
+          checked={acceptMessages ?? false}
           onCheckedChange={handleSwitchChange}
           disabled={isSwitchLoading}
         />
@@ -191,4 +196,4 @@ function page() {
   );
 }
 
-export default page
+export default UserDashboard

@@ -13,8 +13,7 @@ export async function proxy(request: NextRequest) {
     (
       url.pathname.startsWith('/sign-in') ||
       url.pathname.startsWith('/sign-up') ||
-      url.pathname.startsWith('/verify') ||
-      url.pathname.startsWith('/')
+      url.pathname.startsWith('/verify')
     )
   ) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
@@ -24,7 +23,7 @@ export async function proxy(request: NextRequest) {
 
     // TODO: UNCHECKED below for Middleware
 
-    // return NextResponse.redirect(new URL('/sign-in', request.url))  
+    return NextResponse.redirect(new URL('/sign-in', request.url))  
   }
 
   return NextResponse.next()

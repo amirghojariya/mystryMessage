@@ -11,13 +11,16 @@ import { useParams, useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
-function VerifyAccount() {
+export default function VerifyAccount() {
     const router = useRouter()
     const params = useParams<{ username: string }>()
     const { toast } = useToast()
 
-    const form = useForm<z.infer<typeof verfiySchema>>({
+    const form = useForm<z.infer<typeof verfiySchema>>({  //verify spelling mistake
         resolver: zodResolver(verfiySchema),
+        defaultValues: {
+        code: ''  
+    }
     })
 
     const onSubmit = async (data: z.infer<typeof verfiySchema>) => {
@@ -25,7 +28,8 @@ function VerifyAccount() {
             const response = await axios.post<ApiResponse>(`/api/verify-code`, {
                 username: params.username,
                 code: data.code
-            })  
+                
+            })
 
             toast({
                 title: "Success",
@@ -35,11 +39,10 @@ function VerifyAccount() {
             router.replace(`/sign-in`)
 
         } catch (error) {
-            console.error("Error in signup of user", error)
-            const AxiosError = error as AxiosError<ApiResponse>;
+            const axiosError = error as AxiosError<ApiResponse>;
             toast({
-                title: "signup failed",
-                description: AxiosError.response?.data.message,
+                title: "Verification failed",
+                description: axiosError.response?.data.message ?? 'An error occurred. Please try again.',
                 variant: "destructive"
             })
         }
@@ -47,7 +50,7 @@ function VerifyAccount() {
 
     return (
         <div className='flex justify-center items-center min-h-screen bg-gray-100'>
-            <div className='className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md'>
+            <div className='w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md'>
                 <div className='text-center'>
                     <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
                         Verify Your Account
@@ -57,21 +60,17 @@ function VerifyAccount() {
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                         <FormField
-                            control={form.control}
                             name="code"
+                            control={form.control}
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Verification Code</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="code" {...field} />
-                                    </FormControl>
-                                    <FormDescription>
-                                    </FormDescription>
+                                        <Input {...field} />
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        <Button type="submit">Submit</Button>
+                        <Button type="submit">Verify</Button>
                     </form>
                 </Form>
             </div>
@@ -79,4 +78,3 @@ function VerifyAccount() {
     )
 }
 
-export default VerifyAccount
