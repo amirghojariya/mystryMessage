@@ -6,64 +6,55 @@ import { User } from "next-auth";
 import mongoose from "mongoose";
 
 export async function GET(request: Request) {
-    await dbConnect()
+    await dbConnect();
 
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions);
+    const _user: User = session?.user;
 
-
-    const _user: User = session?.user
-
-
-
+    // ✅ Check authentication first
     if (!session || !_user) {
         return Response.json(
             {
                 success: false,
-                message: "Not Authenticated"
+                message: "Not Authenticated",
             },
-
             { status: 401 }
-        )
+        );
     }
-    
+
     try {
         const userId = new mongoose.Types.ObjectId(_user._id);
 
-        const user = await UserModel.aggregate([
-            { $match: { _id: userId } },
-            { $unwind: '$messages' },
-            { $sort: { 'messages.createdAT': -1 } },
-            { $group: { _id: '$_id', messages: { $push: '$messages' } } }
-        ])
+        // ✅ Fetch user directly
+        const user = await UserModel.findById(userId).lean();
 
-        if (!user || user.length === 0) {
+        if (!user) {
             return Response.json(
                 {
                     success: false,
-                    message: "User not found"
+                    message: "User not found",
                 },
-
                 { status: 404 }
-            )
+            );
         }
+
 
         return Response.json(
             {
-                messages: user[0].messages
+                success: true,
+                messages: [],
             },
-
             { status: 200 }
-        )
+        );
 
     } catch (error) {
         console.error("Error fetching messages:", error);
         return Response.json(
             {
                 success: false,
-                message: "Internal server error"
+                message: "Internal server error",
             },
-
             { status: 500 }
-        )
+        );
     }
 }
